@@ -1,23 +1,34 @@
-from fastapi import FastAPI, Request, Form
+import pathlib
+from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
-from src.model import spell_number
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse
+
+
+
 
 app = FastAPI()
+
+
 templates = Jinja2Templates(directory="templates/")
 
-
-@app.get('/')
-def read_form():
-    return 'hello world'
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
-@app.get("/form")
-def form_post(request: Request):
-    result = "Type a number"
-    return templates.TemplateResponse('form.html', context={'request': request, 'result': result})
+@app.get('/', response_class=HTMLResponse)
+async def index(request: Request):
+    posts = [
+        {"id":1, "title":"fastapi.blog title 1", "body":"Learn FastAPI with the fastapi.blog team 1"},
+        {"id":2, "title":"fastapi.blog title 2", "body":"Learn FastAPI with the fastapi.blog team 2"},
+        {"id":3, "title":"fastapi.blog title 3", "body":"Learn FastAPI with the fastapi.blog team 3"},
+    ]
+    context = {
+        "request": request,
+        "posts": posts,
+        "title": "Home Page"
+    }
+    response = templates.TemplateResponse("index.html", context,{"request": request})
+    return response
 
 
-@app.post("/form")
-def form_post(request: Request, num: int = Form(...)):
-    result = spell_number(num)
-    return templates.TemplateResponse('form.html', context={'request': request, 'result': result})
+
